@@ -61,6 +61,7 @@ def read_rides_as_dictionary(filename):
                 'rides': rides,
             }
             records.append(row)
+    return records
 
 def read_rides_as_named_tuple(filename):
     '''
@@ -77,6 +78,7 @@ def read_rides_as_named_tuple(filename):
             rides = int(row[3])
             row = RowNamedTuple(route, date, daytype, rides)
             records.append(row)
+    return records
 
 def read_rides_as_class(filename):
     '''
@@ -93,6 +95,7 @@ def read_rides_as_class(filename):
             rides = int(row[3])
             row = RowClass(route, date, daytype, rides)
             records.append(row)
+    return records
 
 def read_rides_as_class_with_slots(filename):
     '''
@@ -109,6 +112,7 @@ def read_rides_as_class_with_slots(filename):
             rides = int(row[3])
             row = RowClassWithSlots(route, date, daytype, rides)
             records.append(row)
+    return records
 
 # A class made using @dataclass
 @dataclass
@@ -133,6 +137,7 @@ def read_rides_as_dataclass(filename):
             rides = int(row[3])
             row = RowDataClass(route, date, daytype, rides)
             records.append(row)
+    return records
 
 # A class made using @dataclass
 @dataclass(slots=True)
@@ -157,6 +162,7 @@ def read_rides_as_dataclass_with_slots(filename):
             rides = int(row[3])
             row = RowDataClassWithSlots(route, date, daytype, rides)
             records.append(row)
+    return records
 
 if __name__ == '__main__':
 
@@ -213,3 +219,15 @@ if __name__ == '__main__':
     peak_MB = peak/1000000
     current_MB = current/1000000
     print(f'Dataclass with slots Memory Use: Current {peak_MB}MB, {current_MB}MB')
+
+# results:
+# python readrides.py
+# File size:  12.361039 MB
+# Tuple Memory Use: Current 123.688774MB, 123.719176MB
+# Dictionary Memory Use: Current 0.164294MB, 339.818082MB
+# Class Memory Use: Current 0.008201MB, 169.926634MB
+# Named tuple Memory Use: Current 0.004437MB, 128.343262MB
+# Class with __slots__ Memory Use: Current 0.005384MB, 119.103201MB
+# Dataclass Memory Use: Current 0.011331MB, 169.929764MB
+# Dataclass with slots Memory Use: Current 0.007422MB, 119.105239MB
+
