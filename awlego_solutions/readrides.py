@@ -3,6 +3,41 @@
 import csv
 from dataclasses import dataclass
 from collections import namedtuple
+import collections
+
+class RideData(collections.abc.Sequence):
+    def __init__(self):
+        # Each value is a list with all of the values (a column)
+        self.routes = []
+        self.dates = []
+        self.daytypes = []
+        self.numrides = []
+        
+    def __len__(self):
+        # All lists assumed to have the same length
+        return len(self.routes)
+
+    def __getitem__(self, index):
+        if type(index) is not int:
+            if index.step == None:
+                step = 1
+            else:
+                step = index.step
+            result = []
+            for i in range(index.start, index.stop, step):
+                result.append(self.__getitem__(i))
+            return result
+        return { 'route': self.routes[index],
+                 'date': self.dates[index],
+                 'daytype': self.daytypes[index],
+                 'rides': self.numrides[index] }
+
+    def append(self, d):
+        self.routes.append(d['route'])
+        self.dates.append(d['date'])
+        self.daytypes.append(d['daytype'])
+        self.numrides.append(d['rides'])
+
 
 # A class
 class RowClass:
@@ -46,6 +81,28 @@ def read_rides_as_dictionary(filename):
     Read the bus ride data as dictionary
     '''
     records = []
+    with open(filename) as f:
+        rows = csv.reader(f)
+        headings = next(rows)
+        for row in rows:
+            route = row[0]
+            date = row[1]
+            daytype = row[2]
+            rides = int(row[3])
+            row = {
+                'route': route,
+                'date': date,
+                'daytype': daytype,
+                'rides': rides,
+            }
+            records.append(row)
+    return records
+
+def read_rides_as_dictionary_with_columns(filename):
+    '''
+    Read the bus ride data as dictionary
+    '''
+    records = RideData()      # <--- CHANGE THIS
     with open(filename) as f:
         rows = csv.reader(f)
         headings = next(rows)
@@ -164,7 +221,35 @@ def read_rides_as_dataclass_with_slots(filename):
             records.append(row)
     return records
 
+def read_rides_as_columns(filename):
+    '''
+    Read the bus ride data into 4 lists, representing columns
+    '''
+    routes = []
+    dates = []
+    daytypes = []
+    numrides = []
+    with open(filename) as f:
+        rows = csv.reader(f)
+        headings = next(rows)     # Skip headers
+        for row in rows:
+            routes.append(row[0])
+            dates.append(row[1])
+            daytypes.append(row[2])
+            numrides.append(int(row[3]))
+    return dict(routes=routes, dates=dates, daytypes=daytypes, numrides=numrides)
+
+def test_slicing():
+    rows = read_rides_as_dictionary_with_columns('../Data/ctabus.csv')
+    print(rows[0])
+    print(rows[0:10])
+
+
+
 if __name__ == '__main__':
+
+    test_slicing()
+    # exit()
 
     f = open('../Data/ctabus.csv')
     data = f.read()
@@ -219,6 +304,20 @@ if __name__ == '__main__':
     peak_MB = peak/1000000
     current_MB = current/1000000
     print(f'Dataclass with slots Memory Use: Current {peak_MB}MB, {current_MB}MB')
+
+    tracemalloc.reset_peak()
+    rows = read_rides_as_columns('../Data/ctabus.csv')
+    peak, current = tracemalloc.get_traced_memory()
+    peak_MB = peak/1000000
+    current_MB = current/1000000
+    print(f'reading as columns Memory Use: Current {peak_MB}MB, {current_MB}MB')
+
+    tracemalloc.reset_peak()
+    rows = read_rides_as_dictionary_with_columns('../Data/ctabus.csv')
+    peak, current = tracemalloc.get_traced_memory()
+    peak_MB = peak/1000000
+    current_MB = current/1000000
+    print(f'reading as dictionary with columns Memory Use: Current {peak_MB}MB, {current_MB}MB')
 
 # results:
 # python readrides.py
