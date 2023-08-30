@@ -56,4 +56,20 @@ class MutInt:
             return self.value < other
         else:
             return NotImplemented
+        
+    def __gt__(self, other):
+        if isinstance(other, MutInt):
+            return self.value > other.value
+        elif isinstance(other, int):
+            return self.value > other
+        else:
+            return NotImplemented
+        
+    def __int__(self):
+        return self.value
+
+    def __float__(self):
+        return float(self.value)
+    
+    __index__ = __int__     # Make indexing work
     __radd__ = __add__    # Reversed operands
