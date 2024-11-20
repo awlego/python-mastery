@@ -62,6 +62,7 @@ def read_csv_as_columns(filename, coltypes):
             row_record = { name:func(val) for name, func, val in zip(headers, coltypes, row) }
             records.append(row_record)
         return records
+        
 
 if __name__ == "__main__":
     import tracemalloc
