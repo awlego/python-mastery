@@ -10,6 +10,7 @@
 2.3 x
 2.4 x
 2.5 x
-2.6 x - I might have a bit more to do on the last part, but I feel like moving on
+2.6 x
 
 3.1 x
+3.2 

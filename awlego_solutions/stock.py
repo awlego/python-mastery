@@ -1,4 +1,7 @@
 # stock.py
+import csv
+
+from typing import List, Type
 
 import csv
 from decimal import Decimal
@@ -31,13 +34,28 @@ def read_portfolio(filename):
             portfolio.append(Stock.from_row([name, shares, price]))
     return portfolio
 
-def print_portfolio(portfolio):
-    print('%10s %10s %10s' % ("name", "shares", "price"))
-    print('%10s %10s %10s' % ("-"*10, "-"*10, "-"*10))
+def read_portfolio(csv_filepath: str) -> List["Stock"]: 
+    '''
+    Read a CSV file of stock data into a list of Stocks
+    '''
+    with open(csv_filepath, 'r') as file:
+        portfolio = csv.reader(file)
+        headers = next(portfolio)
+
+        rows = (dict(zip(headers,row)) for row in portfolio)
+        stocks = [Stock(str(row["name"]), float(row["shares"]), float(row["price"])) for row in rows]
+        
+    return stocks
+
+def print_portfolio(portfolio: List["Stock"]) -> None: 
+    print('%10s %10s %10s' % ("Name", "Shares", "Price"))
+    print('%10s %10s %10s' % ("--------", "--------", "--------"))
+
     for s in portfolio:
         print('%10s %10d %10.2f' % (s.name, s.shares, s.price))
 
 if __name__ == "__main__":
+    # 3.1a
     s = Stock('GOOG',100,490.10)
     print(s.shares)
     s.sell(25)
@@ -45,4 +63,10 @@ if __name__ == "__main__":
 
     # portfolio = read_portfolio("../Data/portfolio.csv")
     portfolio = read_csv_as_instances('Data/portfolio.csv', Stock)
+    assert(s.shares == 75)
+
+    portfolio = read_portfolio("../Data/portfolio.csv")
+    for s in portfolio:
+        print(s)
+
     print_portfolio(portfolio)
