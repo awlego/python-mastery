@@ -127,5 +127,5 @@ if __name__ == "__main__":
     # s.price = Decimal('93.2')
     # print(s.price)
     # s.price = 93.2 # should type error
-
+    pass
 
