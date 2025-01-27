@@ -3,9 +3,8 @@ import csv
 from collections import namedtuple
 import collections
 import collections.abc
+from abc import ABC, abstractmethod
 
-def type_a_row(row, types):
-    return list(zip(types, row))
 
 def read_csv_as_dicts(filename, coltypes):
     records = []
@@ -29,6 +28,8 @@ def read_csv_as_instances(filename, cls):
         for row in rows:
             records.append(cls.from_row(row))
     return records
+
+
 
 class DataCollection(collections.abc.Sequence):
 
@@ -74,11 +75,54 @@ def read_csv_as_columns(filename, coltypes):
             row_record = { name:func(val) for name, func, val in zip(headers, coltypes, row) }
             records.append(row_record)
         return records
-        
 
+class CSVParser(ABC):
+
+    def parse(self, filename):
+        records = []
+        with open(filename) as f:
+            rows = csv.reader(f)
+            headers = next(rows)
+            for row in rows:
+                record = self.make_record(headers, row)
+                records.append(record)
+        return records
+    
+    @abstractmethod
+    def make_record(self, headers, row):
+        pass
+
+def type_a_row(row, types):
+    return list(zip(types, row))
+
+class DictCSVParser(CSVParser):
+    def __init__(self, types):
+        self.types = types
+
+    def make_record(self, headers, row):
+        return { name: func(val) for name, func, val in zip(headers, self.types, row) }
+
+class InstanceCSVParser(CSVParser):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def make_record(self, headers, row):
+        return self.cls.from_row(row)
+    
+def read_csv_as_dicts(filename, types):
+    parser = DictCSVParser(types)
+    return parser.parse(filename)
+
+def read_csv_as_instances(filename, cls):
+    parser = InstanceCSVParser(cls)
+    return parser.parse(filename)
+
+
+    
 if __name__ == "__main__":
     import tracemalloc
     from sys import intern
+    import stock
 
     ## 2_6 part 1
     # portfolio = read_csv_as_dicts('../Data/portfolio.csv', [str,int,float])
@@ -111,10 +155,14 @@ if __name__ == "__main__":
     # print(len(routeids))
     # print(tracemalloc.get_traced_memory())
 
-    ## 2_6 part 3
-    data = read_csv_as_columns('../Data/ctabus.csv', coltypes=[str, str, str, int])
-    print(type(data))
-    print(len(data))
-    print(data[0])
-    print(data[1])
-    print(data[2])
+    # ## 2_6 part 3
+    # data = read_csv_as_columns('../Data/ctabus.csv', coltypes=[str, str, str, int])
+    # print(type(data))
+    # print(len(data))
+    # print(data[0])
+    # print(data[1])
+    # print(data[2])
+
+    ## 3.7
+    port = read_csv_as_instances('../Data/portfolio.csv', stock.Stock)
+    print(port)

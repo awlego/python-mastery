@@ -1,13 +1,16 @@
 import stock
 import reader
 from typing import List
+from abc import ABC, abstractmethod
 
 
+class TableFormatter(ABC):
 
-class TableFormatter:
+    @abstractmethod
     def headings(self, headers):
         raise NotImplementedError()
     
+    @abstractmethod
     def row(self, rowdata):
         raise NotImplementedError()
 
@@ -68,24 +71,54 @@ def print_table(objects: List, names: List):
 
 def print_table(records, fields, formatter):
     '''3.5 print_table'''
+    if not isinstance(formatter, TableFormatter):
+        raise TypeError("Expected a TableFormatter")
     formatter.headings(fields)
     for r in records:
         rowdata = [getattr(r, fieldname) for fieldname in fields]
         formatter.row(rowdata)
 
+def raises(exception_type, func, *args, **kwargs):
+    """Test if a function call raises an exception"""
+    try:
+        func(*args, **kwargs)
+        return False
+    except exception_type:
+        return True
+    except Exception as e:
+        return False
+    
+class NewFormatter(TableFormatter):
+    def headings(self, headers):
+        pass
+    def row(self, rowdata):
+        pass
 
 if __name__ == "__main__":
     # portfolio = stock.read_portfolio('../Data/portfolio.csv')  
     # print_table(portfolio, ['name','shares','price'])
     # print_table(portfolio, ['shares','name'])
 
-    # 3.5
+    # # 3.5
+    # portfolio = reader.read_csv_as_instances('../Data/portfolio.csv', stock.Stock)
+    # formatter = TextTableFormatter()
+    # print_table(portfolio, ['name','shares','price'], formatter)
+
+    # formatter = CSVTableFormatter()
+    # print_table(portfolio, ['name','shares','price'], formatter)
+
+    # formatter = HTMLTableFormatter()
+    # print_table(portfolio, ['name','shares','price'], formatter)
+
+    # 3.7
     portfolio = reader.read_csv_as_instances('../Data/portfolio.csv', stock.Stock)
-    formatter = TextTableFormatter()
-    print_table(portfolio, ['name','shares','price'], formatter)
+    class MyFormatter:
+        def headings(self,headers): pass
+        def row(self,rowdata): pass
 
-    formatter = CSVTableFormatter()
-    print_table(portfolio, ['name','shares','price'], formatter)
+    assert raises(TypeError, print_table, portfolio, ['name','shares','price'], MyFormatter())
+    print_table(portfolio, ['name','shares','price'], create_formatter('text'))
 
-    formatter = HTMLTableFormatter()
-    print_table(portfolio, ['name','shares','price'], formatter)
+    # f = NewFormatter()
+
+
