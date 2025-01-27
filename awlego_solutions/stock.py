@@ -48,6 +48,12 @@ class Stock:
     
     def sell(self, shares):
         self.shares -= shares
+    
+    def __repr__(self):
+        return f"Stock('{self.name}', {self.shares}, {self.price})"
+    
+    def __eq__(self, other):
+        return isinstance(other, Stock) and ((self.name, self.shares, self.price) == (other.name, other.shares, other.price))
 
 class DStock(Stock):
     _types = (str, int, Decimal)
@@ -89,6 +95,7 @@ def print_portfolio(portfolio: List["Stock"]) -> None:
     for s in portfolio:
         print('%10s %10d %10.2f' % (s.name, s.shares, s.price))
 
+
 if __name__ == "__main__":
     # # 3.1a
     # s = Stock('GOOG',100,490.10)
@@ -127,5 +134,15 @@ if __name__ == "__main__":
     # s.price = Decimal('93.2')
     # print(s.price)
     # s.price = 93.2 # should type error
-    pass
+   
+    
+    # 3.6
+    goog = Stock('GOOG', 100, 490.10)
+    print(repr(goog))
+
+    a = Stock('GOOG', 100, 490.10)
+    b = Stock('GOOG', 100, 490.10)
+    print(a == b)
+
+
 
