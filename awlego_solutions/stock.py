@@ -96,6 +96,15 @@ def print_portfolio(portfolio: List["Stock"]) -> None:
         print('%10s %10d %10.2f' % (s.name, s.shares, s.price))
 
 
+class SimpleStock:
+    def __init__(self, name, shares, price):
+        self.name = name
+        self.shares = shares
+        self.price = price
+
+    def cost(self):
+        return self.shares * self.price
+
 if __name__ == "__main__":
     # # 3.1a
     # s = Stock('GOOG',100,490.10)
@@ -143,6 +152,8 @@ if __name__ == "__main__":
     a = Stock('GOOG', 100, 490.10)
     b = Stock('GOOG', 100, 490.10)
     print(a == b)
+
+
 
 
 

@@ -94,6 +94,16 @@ class NewFormatter(TableFormatter):
     def row(self, rowdata):
         pass
 
+class ColumnFormatMixin:
+    formats = []
+    def row(self, rowdata):
+        rowdata = [(fmt % d) for fmt, d in zip(self.formats, rowdata)]
+        super().row(rowdata)
+
+class UpperHeadersMixin:
+    def headings(self, headers):
+        super().headings([h.upper() for h in headers])
+
 if __name__ == "__main__":
     # portfolio = stock.read_portfolio('../Data/portfolio.csv')  
     # print_table(portfolio, ['name','shares','price'])
@@ -120,5 +130,7 @@ if __name__ == "__main__":
     print_table(portfolio, ['name','shares','price'], create_formatter('text'))
 
     # f = NewFormatter()
+
+
 
 
