@@ -4,165 +4,68 @@ from collections import namedtuple
 import collections
 import collections.abc
 from abc import ABC, abstractmethod
+import csv
+import stock
+from typing import Iterable
+import gzip
 
-
-def read_csv_as_dicts(filename, coltypes):
+def read_csv_as_dicts(filename, types):
+    '''
+    Read CSV data into a list of dictionaries with optional type conversion
+    '''
     records = []
-    with open(filename) as f:
-        rows = csv.reader(f)
+    with open(filename) as file:
+        rows = csv.reader(file)
         headers = next(rows)
-        print(headers)
         for row in rows:
-            row_record = { name:func(val) for name, func, val in zip(headers, coltypes, row) }
-            records.append(row_record)
-        return records
+            record = { name: func(val) 
+                       for name, func, val in zip(headers, types, row) }
+            records.append(record)
+    return records
 
 def read_csv_as_instances(filename, cls):
     '''
-    Read a CSV file into a list of instances
+    Read CSV data into a list of instances
     '''
     records = []
-    with open(filename) as f:
-        rows = csv.reader(f)
+    with open(filename) as file:
+        rows = csv.reader(file)
         headers = next(rows)
         for row in rows:
-            records.append(cls.from_row(row))
+            record = cls.from_row(row)
+            records.append(record)
     return records
 
 
-
-class DataCollection(collections.abc.Sequence):
-
-    def __init__(self):
-        self.routes = []
-        self.dates = []
-        self.daytypes = []
-        self.numrides = []
-
-    def __len__(self):
-        # All lists assumed to have the same length
-        return len(self.routes)
-    
-    def __getitem__(self, index):
-        if type(index) is not int:
-            if index.step == None:
-                step = 1
-            else:
-                step = index.step
-            result = []
-            for i in range(index.start, index.stop, step):
-                result.append(self.__getitem__(i))
-            return result
-        return { 'route': self.routes[index],
-                 'date': self.dates[index],
-                 'daytype': self.daytypes[index],
-                 'rides': self.numrides[index] }
-    
-    def append(self, d):
-        self.routes.append(d['route'])
-        self.dates.append(d['date'])
-        self.daytypes.append(d['daytype'])
-        self.numrides.append(d['rides'])
-
-
-def read_csv_as_columns(filename, coltypes):
-    records = DataCollection()
-    with open(filename) as f:
-        rows = csv.reader(f)
+def csv_as_dicts(lines: Iterable, types, headers: list[str] | None = None):
+    records = []
+    rows = csv.reader(lines)
+    if headers is None:
         headers = next(rows)
-        print(headers)
-        for row in rows:
-            row_record = { name:func(val) for name, func, val in zip(headers, coltypes, row) }
-            records.append(row_record)
-        return records
+    for row in rows:
+        record = {name: func(val) for name, func, val in zip(headers, types, row)}
+        records.append(record)
+    return records
 
-class CSVParser(ABC):
-
-    def parse(self, filename):
-        records = []
-        with open(filename) as f:
-            rows = csv.reader(f)
-            headers = next(rows)
-            for row in rows:
-                record = self.make_record(headers, row)
-                records.append(record)
-        return records
-    
-    @abstractmethod
-    def make_record(self, headers, row):
-        pass
-
-def type_a_row(row, types):
-    return list(zip(types, row))
-
-class DictCSVParser(CSVParser):
-    def __init__(self, types):
-        self.types = types
-
-    def make_record(self, headers, row):
-        return { name: func(val) for name, func, val in zip(headers, self.types, row) }
-
-class InstanceCSVParser(CSVParser):
-    def __init__(self, cls):
-        self.cls = cls
-
-    def make_record(self, headers, row):
-        return self.cls.from_row(row)
-    
-def read_csv_as_dicts(filename, types):
-    parser = DictCSVParser(types)
-    return parser.parse(filename)
-
-def read_csv_as_instances(filename, cls):
-    parser = InstanceCSVParser(cls)
-    return parser.parse(filename)
+def csv_as_instances(lines: Iterable, cls: type, headers: list[str] | None = None):
+    records = []
+    rows = csv.reader(lines)
+    if headers is None:
+        headers = next(rows)
+    for row in rows:
+        record = cls.from_row(row)
+        records.append(record)
+    return records
 
 
     
 if __name__ == "__main__":
-    import tracemalloc
-    from sys import intern
-    import stock
-
-    ## 2_6 part 1
-    # portfolio = read_csv_as_dicts('../Data/portfolio.csv', [str,int,float])
-    # for s in portfolio:
-    #     print(s)
-
-    # ctabus_data = read_csv_as_dicts('../Data/ctabus.csv', [str,str,str,int])
-    # print(len(ctabus_data))
-    # routes = { row['route'] for row in ctabus_data }
-    # print(len(routes))
-    # routeids = { id(row['route']) for row in ctabus_data }
-    # print(len(routeids))
-
-    ## 2_6 part 2
-    # tracemalloc.start()
-    # rows = read_csv_as_dicts('../Data/ctabus.csv', [str, str, str, int])
-    # routeids = { id(row['route']) for row in rows }
-    # print(len(routeids))
-    # print(tracemalloc.get_traced_memory())
-
-    # tracemalloc.reset_peak()
-    # rows = read_csv_as_dicts('../Data/ctabus.csv', [intern, str, str, int])
-    # routeids = { id(row['route']) for row in rows }
-    # print(len(routeids))
-    # print(tracemalloc.get_traced_memory())
-    
-    # tracemalloc.reset_peak()
-    # rows = read_csv_as_dicts('../Data/ctabus.csv', [intern, intern, str, int])
-    # routeids = { id(row['route']) for row in rows }
-    # print(len(routeids))
-    # print(tracemalloc.get_traced_memory())
-
-    # ## 2_6 part 3
-    # data = read_csv_as_columns('../Data/ctabus.csv', coltypes=[str, str, str, int])
-    # print(type(data))
-    # print(len(data))
-    # print(data[0])
-    # print(data[1])
-    # print(data[2])
-
-    ## 3.7
-    port = read_csv_as_instances('../Data/portfolio.csv', stock.Stock)
-    print(port)
+    # port = read_csv_as_dicts('../Data/portfolio.csv', [str, int, float])
+    # print(port)
+    # port = read_csv_as_instances('../Data/portfolio.csv', stock.Stock)
+    # print(port)
+    # file = open('../Data/portfolio.csv')
+    # port = csv_as_dicts(file, [str, int, float])
+    # print(port)
+    file = gzip.open('../Data/portfolio.csv.gz', 'rt')
+    port = csv_as_instances(file, stock.Stock)

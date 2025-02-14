@@ -5,7 +5,6 @@ from typing import List, Type
 
 import csv
 from decimal import Decimal
-from reader import read_csv_as_instances
 from validate import String, PositiveInteger, PositiveFloat
 
 class Stock:
